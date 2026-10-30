@@ -1,0 +1,23 @@
+{
+  "name": "turkish-organ-pro",
+  "version": "1.0.0",
+  "description": "Turkish Organ Pro — 10 authentic Turkish instruments, 10 Turkish rhythms, full maqam quarter-tone engine. Works offline on Redmi 13 and any Android.",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve www -l 8080",
+    "build": "echo 'No build step — static PWA. Ready for Capacitor.'",
+    "cap:add": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:build": "npx cap sync && cd android && ./gradlew assembleDebug",
+    "apk:release": "cd android && ./gradlew assembleRelease"
+  },
+  "keywords": ["turkish", "organ", "maqam", "quarter-tone", "saz", "oud", "ney", "kanun", "darbuka", "kemençe", "zurna", "clarinet"],
+  "author": "Music_unmixing — Turkish Organ Pro Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/android": "^6.1.0"
+  }
+}

@@ -1,0 +1,90 @@
+name: Build Turkish Organ Pro APK
+
+on:
+  push:
+    branches: [main, arena/*]
+    paths:
+      - 'TurkishOrganPro/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: TurkishOrganPro
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: TurkishOrganPro/package.json
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add Android platform (if missing)
+        run: |
+          if [ ! -f android/gradlew ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: turkish-organ-pro-debug-apk
+          path: TurkishOrganPro/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Build Release Bundle (optional)
+        run: |
+          cd android
+          ./gradlew bundleRelease || echo "bundleRelease skipped (needs signing config)"
+
+      - name: Package Web assets
+        run: |
+          cd www
+          zip -r ../turkish-organ-pro-web.zip . -x "*.map"
+
+      - name: Create GitHub Release (on main only)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-${{ github.run_number }}
+          name: "Turkish Organ Pro v1.0 APK + Web"
+          body: |
+            Professional Turkish Organ Pro — 10 instruments, 10 rhythms, Maqam engine.
+            - Debug APK: install on Redmi 13 directly (enable unknown sources)
+            - Web zip: PWA offline, add to home screen
+            Built via Capacitor + GitHub Actions on Ubuntu with Android SDK.
+            Redmi 13 optimized: 720x1600 90Hz, Snapdragon 680.
+          files: |
+            TurkishOrganPro/android/app/build/outputs/apk/debug/app-debug.apk
+            TurkishOrganPro/turkish-organ-pro-web.zip
+

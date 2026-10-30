@@ -1,0 +1,16 @@
+{
+  "appId": "com.turkishorgan.pro",
+  "appName": "Turkish Organ Pro",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#0a0a0f"
+    }
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#0a0a0f"
+  }
+}
