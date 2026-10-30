@@ -22,10 +22,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20
+      - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: TurkishOrganPro/package.json
 
@@ -34,7 +34,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
-          cache: gradle
+          # no cache: gradle here — android/ not yet created on first run, would fail with "No file matched"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -45,6 +45,7 @@ jobs:
       - name: Add Android platform (if missing)
         run: |
           if [ ! -f android/gradlew ]; then
+            echo "android/ missing — creating via Capacitor"
             npx cap add android
           fi
           npx cap sync android
@@ -53,7 +54,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --stacktrace --info
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -87,4 +88,3 @@ jobs:
           files: |
             TurkishOrganPro/android/app/build/outputs/apk/debug/app-debug.apk
             TurkishOrganPro/turkish-organ-pro-web.zip
-
