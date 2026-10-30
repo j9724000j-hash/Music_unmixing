@@ -1,0 +1,7 @@
+# Turkish Organ Pro build artifacts
+TurkishOrganPro/android/app/build/
+TurkishOrganPro/android/.gradle/
+TurkishOrganPro/node_modules/
+node_modules/
+.DS_Store
+*.log

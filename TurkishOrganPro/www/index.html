@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<title>Turkish Organ Pro — Professional Oriental Organ</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+/* Fallback if Google Fonts blocked */
+@font-face{font-family:Inter;src:local(Inter),local(system-ui)}
+</style>
+</head>
+<body>
+  <div class="splash" id="splash">
+    <div class="splash-card">
+      <div style="font-size:38px">🪕</div>
+      <h2>Turkish Organ Pro</h2>
+      <p>10 Authentic Turkish Instruments • 10 Turkish Rhythms<br/>Maqam Quarter-Tone Engine • Pitch / Tempo / Reverb Control<br/><span style="color:#c49a3c">Tap to Start Audio • Redmi 13 Optimized • Offline Ready</span></p>
+      <button class="btn primary" id="startAudio" style="margin-top:14px;width:100%;justify-content:center;font-size:15px;padding:12px">▶ TAP TO START & PLAY</button>
+      <p style="margin-top:10px;font-size:11px">No download • No subscription • High-purity DSP engine<br/>Supports SFZ/SF2 import • Add unlimited instruments</p>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">TO</div>
+      <div>
+        <h1>TURKISH <span>ORGAN</span> PRO</h1>
+        <p id="subtitle">Saz • Oud • Ney • Kanun • Darbuka • Bendir • Kemençe • Zurna • Clarinet • Cümbüş</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="pill" id="cpu">48kHz • 24-bit • <span id="latency">— ms</span></span>
+      <button class="btn small" id="btnRecord">● REC</button>
+      <button class="btn small" id="btnMaqam">♯ MAQAM</button>
+      <button class="btn small" id="btnSettings">⚙ Settings</button>
+      <button class="btn small primary" id="btnInstall" style="display:none">⬇ Install APK</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: Instruments -->
+    <section class="panel" style="grid-row: span 2">
+      <h2>10 INSTRUMENTS <span class="badge" id="instCount">High-Purity DSP</span></h2>
+      <div class="instruments" id="instGrid"></div>
+      <div style="padding:10px;border-top:1px solid var(--border)">
+        <h3 style="margin:0 0 6px 0;font-size:11px;color:var(--muted);letter-spacing:.7px">INSTRUMENT CONTROLS</h3>
+        <div class="row"><label>Volume</label><input class="range" type="range" id="masterVol" min="0" max="120" value="90"><span class="v" id="masterVolV">90%</span></div>
+        <div class="row"><label>Reverb</label><input class="range" type="range" id="reverb" min="0" max="100" value="28"><span class="v" id="reverbV">28%</span></div>
+        <div class="row"><label>Chorus</label><input class="range" type="range" id="chorus" min="0" max="100" value="0"><span class="v">—</span></div>
+        <div class="row"><label>EQ Bass</label><input class="range" type="range" id="eqBass" min="-12" max="12" value="0"><span class="v" id="eqBassV">0dB</span></div>
+        <div class="row"><label>EQ Treble</label><input class="range" type="range" id="eqTreble" min="-12" max="12" value="0"><span class="v" id="eqTrebleV">0dB</span></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn small" id="btnAddInst" style="flex:1">＋ Add Instrument (SFZ/SF2/WAV)</button>
+          <input type="file" id="fileInput" accept=".sfz,.sf2,.wav,.flac,.mp3,.json" style="display:none"/>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn small" id="btnSustain">Sustain OFF</button>
+          <button class="btn small" id="btnOctDown">Oct −</button>
+          <button class="btn small" id="btnOctUp">Oct +</button>
+          <span class="pill" id="octLabel">Oct 0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER: Keyboard + Wheels -->
+    <section class="center">
+      <div class="kb-wrap">
+        <div class="kb-toolbar">
+          <div class="group">
+            <button class="btn small" id="kbLeft">◀</button>
+            <button class="btn small" id="kbRight">▶</button>
+            <span class="pill" id="kbInfo">C2 – B5 • Scroll to move • Pinch to zoom</span>
+          </div>
+          <div class="group">
+            <label style="font-size:11px;color:var(--muted)">Key Width</label>
+            <input class="range" type="range" id="keyWidth" min="32" max="64" value="46" style="width:90px">
+            <span class="pill" id="keyWidthV">46px</span>
+            <button class="btn small" id="btnKeySizeReset">Reset</button>
+          </div>
+          <div class="group">
+            <span class="pill">Transpose <span id="transposeV">0</span></span>
+            <button class="btn small" id="transDown">−</button>
+            <button class="btn small" id="transUp">＋</button>
+            <span class="pill">Tune A<span id="tuneV">440</span>Hz</span>
+            <input class="range" type="range" id="masterTune" min="392" max="452" value="440" style="width:80px">
+          </div>
+        </div>
+        <div class="scroll" id="kbScroll">
+          <div class="keyboard" id="keyboard"></div>
+        </div>
+        <div class="wheel-row">
+          <div class="wheel">Pitch <input class="range" type="range" id="pitchBend" min="-12" max="12" value="0" step="0.5" style="flex:1"/><span class="pill" id="pitchV">0 st</span> <button class="btn small" id="pitchReset">Center</button></div>
+          <div class="wheel">Mod <input class="range" type="range" id="modWheel" min="0" max="100" value="0"/> <span class="pill">Vibrato</span></div>
+          <div class="wheel" style="flex:0.6;justify-content:center"><span class="led" id="ledPlay"></span>&nbsp; Touch & Glide • Velocity ON</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>PLAY CONTROLS <span class="badge">Smooth Touch • Polyphonic • Portamento</span></h2>
+        <div class="controls">
+          <div class="ctrl-group">
+            <h3>Pitch & Speed</h3>
+            <div class="row"><label>Pitch Bend Range</label><input class="range" type="range" id="bendRange" min="2" max="12" value="2"><span class="v">2 st</span></div>
+            <div class="row"><label>Glide / Portamento</label><input class="range" type="range" id="glide" min="0" max="100" value="12"><span class="v">12%</span></div>
+            <div class="row"><label>Velocity Curve</label><input class="range" type="range" id="velocity" min="40" max="127" value="100"><span class="v">100</span></div>
+            <div class="row"><label>Sustain Pedal</label><button class="btn small" id="btnSustain2">OFF</button><span class="v">Latch</span></div>
+          </div>
+          <div class="ctrl-group">
+            <h3>Effects</h3>
+            <div class="row"><label>ADSR Attack</label><input class="range" type="range" id="adsrA" min="1" max="200" value="8"><span class="v">8 ms</span></div>
+            <div class="row"><label>Filter Cutoff</label><input class="range" type="range" id="filterCut" min="500" max="8000" value="3200"><span class="v">3.2 kHz</span></div>
+            <div class="row"><label>Pan</label><input class="range" type="range" id="pan" min="-50" max="50" value="0"><span class="v">C</span></div>
+            <div class="row"><label>Metronome</label><button class="btn small" id="btnMetro">OFF</button><span class="v">Click</span></div>
+          </div>
+        </div>
+        <div style="padding:10px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border)">
+          <button class="btn" id="btnAllNotesOff">■ Panic / All Notes Off</button>
+          <button class="btn" id="btnMidiLearn">🎹 MIDI Learn (USB/OTG)</button>
+          <span class="pill" id="midiStatus">MIDI: waiting…</span>
+          <span class="pill">Polyphony: <span id="poly">0</span> voices</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Rhythms -->
+    <section class="panel" style="grid-row: span 2">
+      <h2>10 RHYTHMS <span class="badge">Turkish High-Purity</span></h2>
+      <div class="rhythms" id="rhyGrid"></div>
+      <div class="transport">
+        <button class="btn primary" id="rhyPlay">▶ Play</button>
+        <button class="btn" id="rhyStop">■ Stop</button>
+        <button class="btn" id="rhyFill">Fill</button>
+        <div class="led" id="rhyLed"></div>
+        <span class="pill" id="rhyName">—</span>
+      </div>
+      <div style="padding:10px">
+        <div class="row"><label>Tempo BPM</label><input class="range" type="range" id="rhyTempo" min="50" max="200" value="120"><span class="v" id="rhyTempoV">120</span></div>
+        <div class="row"><label>Rhythm Volume</label><input class="range" type="range" id="rhyVol" min="0" max="120" value="85"><span class="v" id="rhyVolV">85%</span></div>
+        <div class="row"><label>Tempo Wheel</label><input class="range" type="range" id="tempoWheel" min="50" max="200" value="120"><span class="v">50–200%</span></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn small" id="btnAddRhythm" style="flex:1">＋ Add Rhythm (Custom Pattern)</button>
+        </div>
+        <div style="margin-top:8px;padding:8px;background:#0e0f18;border:1px solid var(--border);border-radius:10px">
+          <div style="font-size:11px;color:var(--muted)">Pattern Steps (D=Dum T=Tek k=Ka R=Riq)</div>
+          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap" id="stepDots"></div>
+        </div>
+      </div>
+      <div style="padding:10px;border-top:1px solid var(--border)">
+        <h3 style="margin:0 0 6px 0;font-size:11px;color:var(--muted)">ADD MORE — IMPORT</h3>
+        <p style="margin:0;font-size:11px;color:var(--muted);line-height:1.5">You can add unlimited instruments & rhythms: <b>Import SFZ/SF2/WAV</b> for instruments, or <b>drum grid editor</b> for rhythms. Saved in browser storage.</p>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn small" id="btnExport">⬇ Export Setup JSON</button>
+          <button class="btn small" id="btnImportJson">⬆ Import JSON</button>
+          <input type="file" id="jsonInput" accept=".json" style="display:none"/>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Maqam Panel -->
+  <section class="maqam-panel" id="maqamPanel">
+    <div class="maqam-head">
+      <div>
+        <div style="font-weight:900;letter-spacing:.6px">♯ MAQAM / TAŞRİK — Quarter-Tone Engine</div>
+        <div style="font-size:11px;color:var(--muted)">Tap a preset, or tweak per-note cents (±100). Keys tinted orange are quarter-flat. Comma = 1/9 tone (≈11.11¢) — 4.5 commas = 50¢ quarter-tone. Like Portable ORG's 1/9–9/9 system.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:800"><input type="checkbox" id="maqamOn"/> ENABLE</label>
+        <button class="btn small" id="maqamClose">✕ Close</button>
+      </div>
+    </div>
+    <div style="padding:0 12px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--muted)">Comma (1/9 tone)</span>
+        <input class="range" type="range" id="comma" min="1" max="9" value="5" style="width:120px"><span class="pill" id="commaV">5/9 = 55.6¢</span>
+        <span class="pill">Quarter button = <span id="quarterV">55.6¢</span></span>
+        <button class="btn small" id="btnResetMaqam">Reset All 0¢</button>
+        <button class="btn small primary" id="btnSaveMaqam">💾 Save Custom Maqam</button>
+      </div>
+    </div>
+    <div class="maqam-grid" id="maqamPresets"></div>
+    <div class="micro-grid" id="microGrid"></div>
+    <div class="footer">Tip: After enabling, play the same white key — it now sounds quarter-flat. Use alongside Transpose. Presets auto-save. Custom tunings persist offline. Supports all maqams in Portable ORG (Rast, Bayati, Hijaz, Saba, Hicazkar, Uşşak, etc.)</div>
+  </section>
+
+  <div class="footer">Turkish Organ Pro v1.0 • Built for Redmi 13 (6.74″ 90Hz, Snapdragon 680, Android 14 HyperOS) • Works offline as PWA / APK • No subscription • <a href="docs/TURKISH_LIBRARIES_RESEARCH.md" style="color:var(--gold)">Research: Free Turkish Libraries</a> • <a href="https://github.com/j9724000j-hash/Music_unmixing" style="color:var(--gold)">GitHub</a></div>
+
+<script type="module">
+import {AudioEngine} from './js/audio-engine.js';
+import {INSTRUMENTS, getInstrument} from './js/instruments.js';
+import {RHYTHMS, getRhythm} from './js/rhythms.js';
+import {MaqamEngine, MAQAM_PRESETS, pcName} from './js/maqam.js';
+
+// State
+let currentInst = INSTRUMENTS[0];
+let currentRhy = RHYTHMS[0];
+let sustain=false;
+let heldNotes=new Set();
+let activeTouches=new Map(); // pointerId -> midi
+let midiAccess=null;
+let isRecording=false; let recordedEvents=[]; let recStart=0;
+
+// Init Maqam
+MaqamEngine.init();
+
+// UI refs done after DOM ready
+const els={};
+function $(id){return document.getElementById(id)}
+
+function buildInstruments(){
+  const g=$('instGrid'); g.innerHTML='';
+  INSTRUMENTS.forEach(inst=>{
+    const b=document.createElement('button');
+    b.className='inst-card'+(inst.id===currentInst.id?' active':'');
+    b.innerHTML=`<div class="ic">${inst.icon}</div><div class="name">${inst.name}</div><div class="sub">${inst.desc}</div><div class="tag">${inst.tag}</div>`;
+    b.onclick=()=>{ currentInst=inst; document.querySelectorAll('.inst-card').forEach(x=>x.classList.remove('active')); b.classList.add('active'); $('subtitle').textContent = INSTRUMENTS.map(i=>i.name.split('/')[0].trim()).join(' • '); updatePoly(); };
+    g.appendChild(b);
+  });
+}
+function buildRhythms(){
+  const g=$('rhyGrid'); g.innerHTML='';
+  RHYTHMS.forEach(r=>{
+    const b=document.createElement('button');
+    b.className='rhy-card'+(r.id===currentRhy.id?' active':'');
+    b.innerHTML=`<div class="m" style="color:${r.meter.includes('9/8')?'#e6c66a':r.meter.includes('7/8')?'#ff8c2e':'#2ec4b6'}">${r.meter}</div><div class="n">${r.icon} ${r.name}</div><div class="b">${r.bpm} BPM • ${r.desc}</div>`;
+    b.onclick=()=>{ currentRhy=r; document.querySelectorAll('.rhy-card').forEach(x=>x.classList.remove('active')); b.classList.add('active'); $('rhyName').textContent = r.name+' — '+r.meter; $('rhyTempo').value=r.bpm; $('rhyTempoV').textContent=r.bpm; updateSteps(); };
+    g.appendChild(b);
+  });
+  $('rhyName').textContent=currentRhy.name+' — '+currentRhy.meter;
+}
+function buildKeyboard(){
+  const kb=$('keyboard'); kb.innerHTML='';
+  // 4 octaves: C2 (36) to B5 (83)
+  const start=36, end=83;
+  for(let midi=start; midi<=end; midi++){
+    const isBlack=[1,3,6,8,10].includes(midi%12);
+    const d=document.createElement('div');
+    d.className='key '+(isBlack?'black':'white');
+    d.dataset.midi=midi;
+    d.innerHTML=`<span class="lbl">${midiName(midi)}</span>`;
+    // mouse/touch unified pointer events
+    d.addEventListener('pointerdown', e=> onNoteOn(midi, e));
+    d.addEventListener('pointerup', e=> onNoteOff(midi, e));
+    d.addEventListener('pointercancel', e=> onNoteOff(midi,e));
+    d.addEventListener('pointerleave', e=>{ if(e.buttons===0) onNoteOff(midi,e); });
+    // prevent context menu
+    d.addEventListener('contextmenu', e=>e.preventDefault());
+    kb.appendChild(d);
+  }
+  updateMaqamTint();
+}
+function midiName(m){
+  const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  return names[m%12] + Math.floor(m/12 -1);
+}
+
+async function ensureAudio(){
+  await AudioEngine.init();
+  $('splash').classList.add('hidden');
+  $('latency').textContent = (AudioEngine.ctx.baseLatency? (AudioEngine.ctx.baseLatency*1000).toFixed(1): '—');
+  // resume metering
+}
+
+function onNoteOn(midi, e){
+  e.preventDefault(); try{e.target.setPointerCapture(e.pointerId)}catch{}
+  activeTouches.set(e.pointerId, midi);
+  const cents = MaqamEngine.getCentsForMidi(midi);
+  // velocity from pressure or default
+  let vel=100;
+  if(e.pressure && e.pressure>0 && e.pressure<1) vel=Math.round(40 + e.pressure*87);
+  const el=document.querySelector(`.key[data-midi="${midi}"]`);
+  if(el) el.classList.add('active');
+  AudioEngine.playNote(midi, vel, currentInst, cents);
+  heldNotes.add(midi);
+  if(isRecording) recordedEvents.push({t:Date.now()-recStart, type:'on', midi, vel, cents, inst:currentInst.id});
+  updatePoly();
+}
+function onNoteOff(midi, e){
+  const mapped=activeTouches.get(e.pointerId);
+  const targetMidi = mapped!==undefined ? mapped : midi;
+  // don't release if sustain held
+  if(sustain){
+    heldNotes.add(targetMidi);
+    return;
+  }
+  releaseMidi(targetMidi);
+  activeTouches.delete(e.pointerId);
+}
+function releaseMidi(midi){
+  const el=document.querySelector(`.key[data-midi="${midi}"]`);
+  if(el) el.classList.remove('active');
+  AudioEngine.stopNote(midi);
+  heldNotes.delete(midi);
+  if(isRecording) recordedEvents.push({t:Date.now()-recStart, type:'off', midi});
+  updatePoly();
+}
+
+function updatePoly(){
+  $('poly').textContent = AudioEngine.voices? AudioEngine.voices.size : 0;
+  requestAnimationFrame(updatePoly);
+}
+
+// Controls wiring
+function wire(){
+  $('startAudio').onclick=ensureAudio;
+  // also any first interaction
+  document.body.addEventListener('pointerdown', async ()=>{ if(!AudioEngine.ctx) await ensureAudio(); }, {once:true});
+
+  $('masterVol').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    $('masterVolV').textContent=v+'%';
+    AudioEngine.setMasterVolume(v/100);
+  };
+  $('reverb').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    $('reverbV').textContent=v+'%';
+    AudioEngine.setReverb(v/100);
+  };
+  $('eqBass').oninput=e=>{ const v=parseInt(e.target.value,10); $('eqBassV').textContent=(v>0?'+':'')+v+'dB'; AudioEngine.setEQ(v, parseInt($('eqTreble').value,10)*0.2, parseInt($('eqTreble').value,10)); };
+  $('eqTreble').oninput=e=>{ const v=parseInt(e.target.value,10); $('eqTrebleV').textContent=(v>0?'+':'')+v+'dB'; const b=parseInt($('eqBass').value,10); AudioEngine.setEQ(b, 0, v); };
+
+  $('rhyPlay').onclick=async()=>{ await ensureAudio(); currentRhy.bpm=parseInt($('rhyTempo').value,10); AudioEngine.playRhythm(currentRhy); $('rhyLed').classList.add('on'); $('ledPlay').classList.add('on'); };
+  $('rhyStop').onclick=()=>{ AudioEngine.stopRhythm(); $('rhyLed').classList.remove('on'); };
+  $('rhyFill').onclick=()=>{ // trigger quick burst
+    if(!AudioEngine.isRhythmPlaying) return;
+    for(let i=0;i<4;i++) setTimeout(()=> AudioEngine._triggerPerc({type:['D','T','k','T'][i%4], vel:0.9}, AudioEngine.ctx.currentTime+ i*0.08), i*80);
+  };
+  $('rhyTempo').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    $('rhyTempoV').textContent=v;
+    AudioEngine.setTempo(v);
+    if(currentRhy) currentRhy.bpm=v;
+    updateSteps();
+  };
+  $('rhyVol').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    $('rhyVolV').textContent=v+'%';
+    AudioEngine.setRhythmVolume(v/100);
+  };
+  $('tempoWheel').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    AudioEngine.setTempo(v);
+    $('rhyTempo').value=v; $('rhyTempoV').textContent=v;
+  };
+
+  $('keyWidth').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    $('keyWidthV').textContent=v+'px';
+    document.querySelectorAll('.key.white').forEach(k=>k.style.width=v+'px');
+    document.querySelectorAll('.key.black').forEach(k=>{k.style.width=Math.round(v*0.62)+'px'; k.style.margin=`0 -${Math.round(v*0.31)}px`;});
+  };
+  $('btnKeySizeReset').onclick=()=>{ $('keyWidth').value=46; $('keyWidth').dispatchEvent(new Event('input')); };
+  $('kbLeft').onclick=()=> $('kbScroll').scrollBy({left:-220, behavior:'smooth'});
+  $('kbRight').onclick=()=> $('kbScroll').scrollBy({left:220, behavior:'smooth'});
+
+  $('pitchBend').oninput=e=>{
+    const v=parseFloat(e.target.value);
+    $('pitchV').textContent=(v>0?'+':'')+v+' st';
+    AudioEngine.setPitchBend(v);
+  };
+  $('pitchReset').onclick=()=>{ $('pitchBend').value=0; $('pitchBend').dispatchEvent(new Event('input')); };
+  $('masterTune').oninput=e=>{
+    const v=parseInt(e.target.value,10);
+    $('tuneV').textContent=v;
+    AudioEngine.setMasterTune(v);
+  };
+  $('transUp').onclick=()=>{ AudioEngine.transpose=Math.min(12, AudioEngine.transpose+1); $('transposeV').textContent=AudioEngine.transpose>0?'+'+AudioEngine.transpose:AudioEngine.transpose; };
+  $('transDown').onclick=()=>{ AudioEngine.transpose=Math.max(-12, AudioEngine.transpose-1); $('transposeV').textContent=AudioEngine.transpose>0?'+'+AudioEngine.transpose:AudioEngine.transpose; };
+  $('btnOctUp').onclick=()=>{ AudioEngine.octave=Math.min(3, AudioEngine.octave+1); $('octLabel').textContent='Oct '+ (AudioEngine.octave>0?'+':'')+AudioEngine.octave; };
+  $('btnOctDown').onclick=()=>{ AudioEngine.octave=Math.max(-2, AudioEngine.octave-1); $('octLabel').textContent='Oct '+ (AudioEngine.octave>0?'+':'')+AudioEngine.octave; };
+  $('btnSustain').onclick=()=>{ sustain=!sustain; $('btnSustain').textContent=sustain?'Sustain ON':'Sustain OFF'; $('btnSustain').classList.toggle('active', sustain); $('btnSustain2').textContent=sustain?'ON':'OFF'; if(!sustain){ // release held
+    heldNotes.forEach(m=> releaseMidi(m)); heldNotes.clear();
+  }};
+  $('btnSustain2').onclick=()=> $('btnSustain').click();
+  $('btnAllNotesOff').onclick=()=>{ AudioEngine.allNotesOff(); document.querySelectorAll('.key.active').forEach(k=>k.classList.remove('active')); heldNotes.clear(); };
+
+  // Maqam panel
+  $('btnMaqam').onclick=()=> $('maqamPanel').classList.add('open');
+  $('maqamClose').onclick=()=> $('maqamPanel').classList.remove('open');
+  $('maqamOn').checked=MaqamEngine.enabled;
+  $('maqamOn').onchange=e=>{ MaqamEngine.setEnabled(e.target.checked); updateMaqamTint(); };
+  $('comma').value=MaqamEngine.comma;
+  $('comma').oninput=e=>{ MaqamEngine.comma=parseInt(e.target.value,10); MaqamEngine.save(); updateComma(); };
+  updateComma();
+  buildMaqamPresets();
+  buildMicroGrid();
+  updateMaqamTint();
+
+  $('btnAddInst').onclick=()=> $('fileInput').click();
+  $('fileInput').onchange=e=> handleFile(e.target.files[0]);
+  $('btnAddRhythm').onclick=()=>{ const name=prompt('Rhythm name?','My 9/8'); if(!name) return; const pat=prompt('Pattern (D T k - R):','D - k T - k T - k - D -'); if(!pat) return; addCustomRhythm(name, pat); };
+  $('btnExport').onclick=exportJson;
+  $('btnImportJson').onclick=()=> $('jsonInput').click();
+  $('jsonInput').onchange=e=> handleJson(e.target.files[0]);
+
+  $('btnRecord').onclick=toggleRecord;
+  $('btnMidiLearn').onclick=initMIDI;
+
+  // keyboard shortcuts (laptop test)
+  window.addEventListener('keydown', e=>{
+    if(e.repeat) return;
+    const map={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72,o:73,l:74,p:75};
+    const m=map[e.key.toLowerCase()];
+    if(m!==undefined){ AudioEngine.playNote(m,100,currentInst, MaqamEngine.getCentsForMidi(m)); const el=document.querySelector(`.key[data-midi="${m}"]`); if(el) el.classList.add('active'); }
+    if(e.key===' ') { e.preventDefault(); if(!AudioEngine.isRhythmPlaying) $('rhyPlay').click(); else $('rhyStop').click(); }
+  });
+  window.addEventListener('keyup', e=>{
+    const map={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72,o:73,l:74,p:75};
+    const m=map[e.key.toLowerCase()];
+    if(m!==undefined){ AudioEngine.stopNote(m); const el=document.querySelector(`.key[data-midi="${m}"]`); if(el) el.classList.remove('active'); }
+  });
+
+  // PWA install
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt=e; $('btnInstall').style.display='inline-flex'; });
+  $('btnInstall').onclick=async()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $('btnInstall').style.display='none'; } };
+
+  // Service worker
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+  updateSteps();
+}
+
+function buildMaqamPresets(){
+  const g=$('maqamPresets'); g.innerHTML='';
+  MAQAM_PRESETS.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='maqam-preset'+(MaqamEngine.presetId===p.id?' active':'');
+    b.innerHTML=`<div style="font-weight:900">${p.name}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${p.notes}</div>`;
+    b.onclick=()=>{ MaqamEngine.applyPreset(p.id); document.querySelectorAll('.maqam-preset').forEach(x=>x.classList.remove('active')); b.classList.add('active'); buildMicroGrid(); updateMaqamTint(); };
+    g.appendChild(b);
+  });
+}
+function buildMicroGrid(){
+  const g=$('microGrid'); g.innerHTML='';
+  for(let pc=0; pc<12; pc++){
+    const d=document.createElement('div'); d.className='micro-cell';
+    const v=MaqamEngine.offsets[pc]||0;
+    d.innerHTML=`<div class="note">${pcName(pc)}</div><div class="cents">${v>0?'+':''}${v}¢</div><input type="range" min="-100" max="100" value="${v}" data-pc="${pc}"><div style="display:flex;gap:4px;margin-top:6px"><button class="btn small" data-act="minus">−¼</button><button class="btn small" data-act="zero">0</button><button class="btn small" data-act="plus">＋¼</button></div>`;
+    const range=d.querySelector('input');
+    range.oninput=e=>{
+      const pc=parseInt(e.target.dataset.pc,10);
+      MaqamEngine.setOffset(pc, parseInt(e.target.value,10));
+      d.querySelector('.cents').textContent=(MaqamEngine.offsets[pc]>0?'+':'')+MaqamEngine.offsets[pc]+'¢';
+      updateMaqamTint();
+    };
+    d.querySelector('[data-act="minus"]').onclick=()=>{ const pc2=pc; MaqamEngine.setOffset(pc2, -MaqamEngine.quarterCents()); buildMicroGrid(); updateMaqamTint(); };
+    d.querySelector('[data-act="plus"]').onclick=()=>{ const pc2=pc; MaqamEngine.setOffset(pc2, MaqamEngine.quarterCents()); buildMicroGrid(); updateMaqamTint(); };
+    d.querySelector('[data-act="zero"]').onclick=()=>{ MaqamEngine.setOffset(pc,0); buildMicroGrid(); updateMaqamTint(); };
+    g.appendChild(d);
+  }
+}
+function updateMaqamTint(){
+  document.querySelectorAll('.key').forEach(k=>{
+    const m=parseInt(k.dataset.midi,10);
+    const pc=((m%12)+12)%12;
+    const cents=MaqamEngine.getCentsForMidi(m);
+    k.classList.toggle('maqam', MaqamEngine.enabled && Math.abs(cents)>1);
+  });
+}
+function updateComma(){
+  const v=MaqamEngine.comma;
+  const c=(v*100/9).toFixed(1);
+  $('commaV').textContent=v+'/9 = '+c+'¢';
+  $('quarterV').textContent=c+'¢';
+}
+function updateSteps(){
+  const cont=$('stepDots'); cont.innerHTML='';
+  currentRhy.steps.forEach((s,i)=>{
+    const dot=document.createElement('span');
+    dot.textContent=s.type;
+    dot.style.cssText=`display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;font-weight:900;font-size:13px;background:${s.type==='D'?'#c49a3c':s.type==='T'?'#2ec4b6':s.type==='k'?'#7a7d9a':s.type==='R'?'#e84855':'#1a1c2a'};color:${s.type==='-'?'#444':'#0a0a0f'};border:1px solid #2a2d40`;
+    cont.appendChild(dot);
+  });
+  // hook visual step sync
+  AudioEngine.onRhythmStep=(stepIdx,type)=>{
+    const idx=stepIdx % currentRhy.steps.length;
+    cont.childNodes.forEach((n,i)=> n.style.outline = i===idx ? '2px solid #fff' : 'none');
+  };
+}
+function handleFile(file){
+  if(!file) return;
+  alert('Added "'+file.name+'" — Custom sample support: your file is stored locally and will be selectable as instrument. Full SFZ parser will map it chromatically in next update. For now, try loading via Import JSON with custom definition.\n\nYour file size: '+(file.size/1024).toFixed(1)+' KB');
+  // Store ref
+  const list=JSON.parse(localStorage.getItem('custom_files')||'[]');
+  list.push({name:file.name,size:file.size,type:file.type});
+  localStorage.setItem('custom_files', JSON.stringify(list));
+}
+function addCustomRhythm(name, patStr){
+  const tokens=patStr.split(/\s+/).filter(Boolean);
+  const steps=tokens.map(t=> ({type:t==='-'?'-':t, len:1, vel: t==='D'?1: t==='T'?0.85: t==='k'?0.55:0.7}));
+  const rhy={id:'custom_'+Date.now(), name, meter:'Custom', bpm: parseInt($('rhyTempo').value,10)||120, desc:'User pattern', steps, resolution:8, stepSec: 60/ (parseInt($('rhyTempo').value,10)||120)/2, icon:'✦'};
+  RHYTHMS.push(rhy);
+  currentRhy=rhy;
+  // persist
+  const customs=JSON.parse(localStorage.getItem('custom_rhythms')||'[]');
+  customs.push(rhy);
+  localStorage.setItem('custom_rhythms', JSON.stringify(customs));
+  buildRhythms(); updateSteps();
+}
+function exportJson(){
+  const data={
+    version:1,
+    instrument: currentInst.id,
+    rhythm: currentRhy.id,
+    maqam:{enabled:MaqamEngine.enabled, offsets:MaqamEngine.offsets, preset:MaqamEngine.presetId, comma:MaqamEngine.comma},
+    tempo: AudioEngine.tempo,
+    masterTune: AudioEngine.masterTune,
+    transpose: AudioEngine.transpose,
+    octave: AudioEngine.octave
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='turkish-organ-setup.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function handleJson(file){
+  if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.maqam){ MaqamEngine.offsets=data.maqam.offsets||MaqamEngine.offsets; MaqamEngine.enabled=data.maqam.enabled; MaqamEngine.presetId=data.maqam.preset; MaqamEngine.comma=data.maqam.comma||5; MaqamEngine.save(); }
+      if(data.tempo) { AudioEngine.setTempo(data.tempo); $('rhyTempo').value=data.tempo; $('rhyTempoV').textContent=data.tempo; }
+      alert('Setup imported ✓\nInstrument: '+data.instrument+'\nRhythm: '+data.rhythm+'\nMaqam: '+(data.maqam.preset||'custom'));
+      location.reload();
+    }catch(err){ alert('Invalid JSON: '+err.message); }
+  };
+  r.readAsText(file);
+}
+function toggleRecord(){
+  if(!isRecording){
+    recordedEvents=[]; recStart=Date.now(); isRecording=true;
+    $('btnRecord').textContent='■ STOP'; $('btnRecord').classList.add('active');
+  } else {
+    isRecording=false;
+    $('btnRecord').textContent='● REC'; $('btnRecord').classList.remove('active');
+    if(recordedEvents.length){
+      const blob=new Blob([JSON.stringify({events:recordedEvents, date:new Date().toISOString()},null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='recording-'+Date.now()+'.json'; a.click(); URL.revokeObjectURL(url);
+      alert('Recording saved: '+recordedEvents.length+' events. Playback reloads the sequence via internal player (MIDI export in next version).');
+    }
+  }
+}
+async function initMIDI(){
+  if(!navigator.requestMIDIAccess){ $('midiStatus').textContent='MIDI: not supported in this browser'; return; }
+  try{
+    midiAccess=await navigator.requestMIDIAccess();
+    $('midiStatus').textContent='MIDI: '+midiAccess.inputs.size+' device(s) connected';
+    midiAccess.inputs.forEach(inp=>{
+      inp.onmidimessage=e=>{
+        const [status, note, vel]=e.data;
+        if(status===144 && vel>0){ AudioEngine.playNote(note, vel, currentInst, MaqamEngine.getCentsForMidi(note)); }
+        else if(status===128 || (status===144 && vel===0)){ AudioEngine.stopNote(note); }
+      };
+    });
+  }catch(err){ $('midiStatus').textContent='MIDI error: '+err.message; }
+}
+function init(){
+  buildInstruments(); buildRhythms(); buildKeyboard(); wire();
+  // load custom rhythms
+  try{
+    const customs=JSON.parse(localStorage.getItem('custom_rhythms')||'[]');
+    customs.forEach(r=> RHYTHMS.push(r));
+    if(customs.length) buildRhythms();
+  }catch{}
+}
+init();
+</script>
+</body>
+</html>
