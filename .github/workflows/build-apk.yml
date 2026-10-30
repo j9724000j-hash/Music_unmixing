@@ -35,21 +35,23 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      # NOTE: android-actions/setup-android@v3 is broken (tries to install removed 'tools' package).
-      # ubuntu-latest already ships Android SDK with ANDROID_HOME, so we remove that step.
-      # Gradle will auto-fetch platform/build-tools it needs.
-
       - name: Accept Android licenses
         run: yes | sdkmanager --licenses || true
 
       - name: Install dependencies
         run: npm install
 
-      - name: Add Android platform (if missing)
+      - name: Add Android platform (if missing or placeholder)
         run: |
+          if [ -d android ] && [ ! -f android/gradlew ]; then
+            echo "Removing incomplete android placeholder (no gradlew) ..."
+            rm -rf android
+          fi
           if [ ! -f android/gradlew ]; then
-            echo "android/ missing — creating via Capacitor"
+            echo "Creating android platform via Capacitor ..."
             npx cap add android
+          else
+            echo "android/ already exists with gradlew — reusing"
           fi
           npx cap sync android
 
